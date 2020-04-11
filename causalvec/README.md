@@ -20,7 +20,7 @@ This will generate 2 output files, as `cause_embedding.txt` and `effect_embeddin
 
 **Test**
 
-Using the generated causal embedding, the precision-recall point of test word pairs can be calculate by the [code](https://github.com/clulab/releases/blob/master/emnlp2016-causal/src/main/scala/edu/arizona/sista/embeddings/DirectEval.scala). This will generate output file, in which each line is as `(recall, precision)`.
+Using the generated causal embedding, the precision-recall points of test word pairs can be calculate by the [code](https://github.com/clulab/releases/blob/master/emnlp2016-causal/src/main/scala/edu/arizona/sista/embeddings/DirectEval.scala). This will generate output file, in which each line is as `(recall, precision)`.
 
 **Draw Precision-Recall Curve**
 
