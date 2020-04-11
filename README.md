@@ -6,7 +6,7 @@ THe implementation of papers accepted by AAAI2019 and IJCAI2019 respectively.
 
 
 ## Boosting Causal Embeddings via Potential Verb-Mediated Causal Patterns
-> Zhipeng Xie, and \textbf{Feiteng Mu}. “[Boosting Causal Embeddings via Potential Verb-Mediated Causal Patterns](https://doi.org/10.24963/ijcai.2019/266).” Proceedings of the Twenty-Eighth International Joint Conference on Artificial Intelligence, IJCAI-19. International Joint Conferences on Artificial Intelligence Organization, 2019: 1921- 1927.
+> Zhipeng Xie, and Feiteng Mu. “[Boosting Causal Embeddings via Potential Verb-Mediated Causal Patterns](https://doi.org/10.24963/ijcai.2019/266).” Proceedings of the Twenty-Eighth International Joint Conference on Artificial Intelligence, IJCAI-19. International Joint Conferences on Artificial Intelligence Organization, 2019: 1921- 1927.
 
 #### Data Resources
 [high precision extractions of sg corpus](http://www.ke.fudan.edu.cn/data/causal/sg_hp_extractions.txt)

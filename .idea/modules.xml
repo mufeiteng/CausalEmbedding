@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Embedding.iml" filepath="$PROJECT_DIR$/.idea/Embedding.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/causalembedding.iml" filepath="$PROJECT_DIR$/.idea/causalembedding.iml" />
     </modules>
   </component>
 </project>
