@@ -1,4 +1,4 @@
-THe implementation of two papers accepted by AAAI2019 and IJCAI2019 respectively.
+The implementation of two papers accepted by AAAI2019 and IJCAI2019 respectively.
 
 
 ## Distributed Representation of Words in Cause and Effect Spaces

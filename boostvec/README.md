@@ -60,3 +60,8 @@ python bmm.py
 
 This will generate 2 output files, as `boosted_cause_embedding.txt` and `boosted_effect_embedding.txt`.
 
+
+**Result**
+
+![avatar](../fig/bmm_PRCurve_en.png)
+

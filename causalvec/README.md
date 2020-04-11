@@ -30,7 +30,7 @@ The generated file by previous step is used to draw Precision-Recall Curve of ca
 python draw_PR_curve.py
 ```
 
+**Result**
 
-
-
+![avatar](../fig/mm_PRCurve_en.png)
 
