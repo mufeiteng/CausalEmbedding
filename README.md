@@ -1,4 +1,4 @@
-THe implementation of papers accepted by AAAI2019 and IJCAI2019 respectively.
+THe implementation of two papers accepted by AAAI2019 and IJCAI2019 respectively.
 
 
 ## Distributed Representation of Words in Cause and Effect Spaces
@@ -9,13 +9,13 @@ THe implementation of papers accepted by AAAI2019 and IJCAI2019 respectively.
 > Zhipeng Xie, and Feiteng Mu. “[Boosting Causal Embeddings via Potential Verb-Mediated Causal Patterns](https://doi.org/10.24963/ijcai.2019/266).” Proceedings of the Twenty-Eighth International Joint Conference on Artificial Intelligence, IJCAI-19. International Joint Conferences on Artificial Intelligence Organization, 2019: 1921- 1927.
 
 #### Data Resources
-[high precision extractions of sg corpus](http://www.ke.fudan.edu.cn/data/causal/sg_hp_extractions.txt)
+[high precision extractions of SogouCS corpus](http://www.ke.fudan.edu.cn/data/causal/sg_hp_extractions.txt)
 
-[causal embeddings generated from sg corpus](http://www.ke.fudan.edu.cn/data/causal/sg_causal_embeds.zip)
+[causal embeddings generated from SogouCS corpus](http://www.ke.fudan.edu.cn/data/causal/sg_causal_embeds.zip)
 
-[evaluation test set generated from bk corpus](http://www.ke.fudan.edu.cn/data/causal/bk_eval.txt)
+[evaluation testset generated from Baike corpus](http://www.ke.fudan.edu.cn/data/causal/bk_eval.txt)
 
-[causal embeddings generated from english corpus](http://www.ke.fudan.edu.cn/data/causal/en_causal_embeds.zip)
+[causal embeddings generated from Gigaword corpus](http://www.ke.fudan.edu.cn/data/causal/en_causal_embeds.zip)
 
 
 

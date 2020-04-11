@@ -618,7 +618,7 @@ if __name__ == '__main__':
             'causal_wp': os.path.join(project_source_path, 'boostvec/causalpair/en_causal_pairs.txt'),
             'other_wp': os.path.join(project_source_path, 'boostvec/causalpair/en_other_pairs.txt')
         },
-        'saved_path': os.path.join(project_source_path, 'boostvec/en/tutorial/models/pattern/'),
+        'saved_path': os.path.join(project_source_path, 'boostvec/en/models/pattern/'),
         'saved_pattern_prefix': 'en_pattern_weights_rev',
         'threshold': {
             'wp': [2, 100],

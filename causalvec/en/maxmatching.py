@@ -96,8 +96,8 @@ class MaxMatching(BaseModel):
 if __name__ == '__main__':
     path = os.path.join(project_source_path, 'causalembedding/')
     params = {
-        'train_path': os.path.join(path, 'sharp_data.txt'),
-        'test_path': os.path.join(path, 'en_wp_testset.txt'),
+        'train_path': os.path.join(path, 'sharp_data.txt'),  # causal phrase pairs extracted from English corpus
+        'test_path': os.path.join(path, 'en_wp_testset.txt'),  # causal word pairs and non-causal word pairs
         'batch_size': 256,
         'num_epochs': 50,
         'embedding_size': 100,
