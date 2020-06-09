@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import sys
-from extraction.cn.parser import CnParseTree, LTPModel
-from extraction.cn.canrules import *
-from extraction.cn.causalrules import *
-from extraction.cn.negrules import *
+from extraction.zh.parser import CnParseTree, LTPModel
+from extraction.zh.canrules import *
+from extraction.zh.causalrules import *
+from extraction.zh.negrules import *
 import multiprocessing
 
 

@@ -3,17 +3,17 @@ from causalvec.zh.dataloader import *
 from tools import *
 
 
-class MaxMatching(BaseModel):
+class ATTMatching(BaseModel):
     def __init__(self, embedding_size, batch_size, num_epochs, num_samples, learning_rate, data_loader):
         BaseModel.__init__(self, embedding_size, batch_size, num_epochs, num_samples, learning_rate, data_loader)
         self.alpha, self.gamma = None, None
-    
+
     def construct_graph(self):
         with self.graph.as_default():
             session_conf = tf.ConfigProto(allow_soft_placement=True, log_device_placement=False)
             session_conf.gpu_options.allow_growth = True
             self.sess = tf.Session(config=session_conf)
-            
+
             self.input_left = tf.placeholder(tf.int32, [None, self.max_len])
             self.input_right = tf.placeholder(tf.int32, [None, self.max_len])
             self.left_len = tf.placeholder(tf.float32, [None, ])
@@ -21,7 +21,7 @@ class MaxMatching(BaseModel):
             self.targets = tf.placeholder(tf.float32, [None, ])
             self.alpha = tf.placeholder(tf.float32, name='alpha')
             self.gamma = tf.placeholder(tf.float32, name='gamma')
-            
+
             self.init_embedding(left_size=self.dataloader.vocab_left_size, right_size=self.dataloader.vocab_right_size)
             self.input_left_embed = tf.nn.embedding_lookup(self.cause_embed_dict, self.input_left)
             self.input_right_embed = tf.nn.embedding_lookup(self.effect_embed_dict, self.input_right)
@@ -66,12 +66,12 @@ class MaxMatching(BaseModel):
             self.train_op = tf.train.GradientDescentOptimizer(learning_rate=self.learning_rate).minimize(
                 self.loss, global_step=self.global_steps)
             self.sess.run(tf.global_variables_initializer())
-    
+
     def train_stage(self):
-        print('model: Max started!\n')
+        print('model: ATT started!\n')
         with self.sess.as_default():
             assert isinstance(self.dataloader, Data)
-            base_acc = 0.5
+            base_acc = 0.0
             for current_epoch in range(self.num_epochs):
                 print('current epoch: {} started.'.format(current_epoch + 1))
                 ave_loss, count = 0.0, 0
@@ -103,13 +103,14 @@ class MaxMatching(BaseModel):
                 acc, mrr = self.eval(current_epoch)
                 if acc > base_acc:
                     base_acc = acc
+                    print('accuracy and mrr value in epoch {} is acc: {}, mrr: {}.'.format(current_epoch, acc, mrr))
                     self.write_embedding(params['cause_path'], params['effect_path'], str(current_epoch + 1))
                 end_time = time()
                 print('epoch: {} uses {} minutes.\n'.format(current_epoch + 1, float(end_time - start_time) / 60))
 
 
 if __name__ == '__main__':
-    path = os.path.join(project_source_path, 'causalembedding/')
+    path = os.path.join(project_source_path, 'causalembedding/causalvec/')
     params = {
         'train_path': os.path.join(path, 'sg_positives.txt'),
         'test_path': os.path.join(path, 'bk_eva.txt'),
@@ -117,15 +118,15 @@ if __name__ == '__main__':
         'num_epochs': 50,
         'embedding_size': 100,
         'learning_rate': 0.005,
-        'cause_path': os.path.join(project_source_path, 'embedding/att_cause'),
-        'effect_path': os.path.join(project_source_path, 'embedding/att_effect'),
+        'cause_path': os.path.join(path, 'models/zh_att_cause'),
+        'effect_path': os.path.join(path, 'models/zh_att_effect'),
         'min_count': 8,
         'num_samples': 10,
     }
-    
+
     loader = Data()
     loader.prepare_data(params['train_path'], params['test_path'], params['min_count'])
-    causalVec = MaxMatching(
+    causalVec = ATTMatching(
         embedding_size=params['embedding_size'], batch_size=params['batch_size'], num_epochs=params['num_epochs'],
         learning_rate=params['learning_rate'], num_samples=params['num_samples'], data_loader=loader
     )

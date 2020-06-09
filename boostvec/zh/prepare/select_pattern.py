@@ -1,7 +1,7 @@
 from tools import project_source_path, WordCounter
 import os
 import codecs
-from extraction.cn.parser import CnParseTree, LTPModel
+from extraction.zh.parser import CnParseTree, LTPModel
 import multiprocessing
 import sys
 

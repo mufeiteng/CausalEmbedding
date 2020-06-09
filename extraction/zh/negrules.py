@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import codecs
 from tools import project_source_path
-from extraction.cn.cueset import global_cn_comma_words
+from extraction.zh.cueset import global_cn_comma_words
 import os
 
 # global_cn_comma_words = ['，', '；']

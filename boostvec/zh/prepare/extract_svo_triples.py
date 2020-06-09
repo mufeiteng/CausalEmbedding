@@ -1,7 +1,7 @@
 from tools import *
-from extraction.cn.parser import CnParseTree, LTPModel
-from extraction.cn.causalrules import Base
-from extraction.cn.cueset import *
+from extraction.zh.parser import CnParseTree, LTPModel
+from extraction.zh.causalrules import Base
+from extraction.zh.cueset import *
 import sys
 
 

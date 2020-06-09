@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from extraction.cn.cueset import *
+from extraction.zh.cueset import *
 import codecs
 import re
 from tools import project_source_path

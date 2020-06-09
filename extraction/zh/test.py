@@ -18,7 +18,7 @@
 # print(response)
 
 from msworks.extraction.cn.parser import CnParseTree, LTPModel
-from extraction.cn.causalrules import *
+from extraction.zh.causalrules import *
 ltp_model = LTPModel()
 ptree = CnParseTree(ltp_model)
 

@@ -2,7 +2,7 @@ from tools import *
 import sys
 import json
 from tqdm import tqdm
-from extraction.cn.cueset import global_cn_punctuation
+from extraction.zh.cueset import global_cn_punctuation
 
 
 def sigmoid(x): return 1.0/(1.0+np.exp(-x))

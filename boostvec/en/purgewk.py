@@ -105,7 +105,6 @@ if __name__ == '__main__':
             val = arg.split("=")[1]
             params[key] = val
 
-    # tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
 
     split_wiki_paragraph()
     # purge_wiki_line()

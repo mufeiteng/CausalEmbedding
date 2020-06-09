@@ -111,7 +111,7 @@ class BaseModel(object):
                     if e not in self.dataloader.vocab_rev_right:
                         continue
                     scores[join(c, e)] = np.dot(
-                        left_embed[self.dataloader.vocab_rev_left[c]], right_embed[self.dataloader.vocab_rev_right[c]]
+                        left_embed[self.dataloader.vocab_rev_left[c]], right_embed[self.dataloader.vocab_rev_right[e]]
                     )
             if len(scores) == 0:
                 continue

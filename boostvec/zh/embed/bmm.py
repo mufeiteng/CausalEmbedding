@@ -362,16 +362,17 @@ class Trainer(object):
 
 
 if __name__ == '__main__':
+    path = os.path.join(project_source_path, 'boostvec/')
     parameters = {
-        'cause_vec_path': os.path.join(project_source_path, 'boostvec/zh/sg_max_cause_41.txt'),
-        'effect_vec_path': os.path.join(project_source_path, 'boostvec/zh/sg_max_effect_41.txt'),
-        'weak_pp_path': os.path.join(project_source_path, 'boostvec/zh/sg_allverb_negatives.txt'),
-        'pa_prob_path': os.path.join(project_source_path, 'boostvec/zh/models/pattern/sg_pa_prob_rev_2.txt'),
-        # 'strong_pp_path': os.path.join(project_source_path, 'boostvec/zh/bk_verb_positives.txt'),
-        'strong_pp_path': os.path.join(project_source_path, 'boostvec/zh/sg_positives.txt'),
-        'annotated_test_path': os.path.join(project_source_path, 'boostvec/zh/bk_eva.txt'),
-        'cause_path': os.path.join(project_source_path, 'boostvec/zh/models/embed/boosted_cause'),
-        'effect_path': os.path.join(project_source_path, 'boostvec/zh/models/embed/boosted_effect'),
+        'cause_vec_path': os.path.join(path, 'zh/sg_max_cause_41.txt'),
+        'effect_vec_path': os.path.join(path, 'zh/sg_max_effect_41.txt'),
+        'weak_pp_path': os.path.join(path, 'zh/sg_allverb_negatives.txt'),
+        'pa_prob_path': os.path.join(path, 'zh/models/pattern/sg_pa_prob_rev_2.txt'),
+        # 'strong_pp_path': os.path.join(path, 'zh/bk_verb_positives.txt'),
+        'strong_pp_path': os.path.join(path, 'zh/sg_positives.txt'),
+        'annotated_test_path': os.path.join(path, 'zh/bk_eva.txt'),
+        'cause_path': os.path.join(path, 'zh/models/embed/boosted_cause'),
+        'effect_path': os.path.join(path, 'zh/models/embed/boosted_effect'),
 
         'strong_w_count': 6,
         'weak_w_count': 3,
@@ -427,3 +428,4 @@ if __name__ == '__main__':
     annotate_test_set = load_test_data(parameters['annotated_test_path'], left_indices, right_indices)
 
     Trainer(parameters).run(parameters)
+

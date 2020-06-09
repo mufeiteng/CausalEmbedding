@@ -148,28 +148,39 @@ def get_neg_samples(thres):
     return shuffle_data(np.array(response)), count
 
 
-def get_valid_wp_list_and_pattern(wp_path, wp_score_thres, wp_count_thres, v_wp_count, pa_dict_len):
+def get_valid_wp_list_and_pattern(wp_path, wp_score_thres, wp_count_thres, v_wp_count):
+    hard_core_causal_pattern = {'lead_to', 'result_in', 'result_from_rev', 'prompt', 'spark', 'spur', 'stem_from_rev', 'provoke'}
     _selected_pos_dict = dict()
     # 加载数据
-    low, high = wp_count_thres
     fin = codecs.open(wp_path, 'r', 'utf-8')
-    lines = fin.readlines()
-    for line in lines:
+    line = fin.readline()
+    while line:
         try:
             wp, score, count = line.strip().split(' ')
             _w1, _w2 = wp.split('_')
-            if _w1 in {'原因', '缘由'} or _w2 in {'结果', '后果'}:
-                continue
-            if len(_w1) < 2 or len(_w2) < 2:
-                continue
-            if low <= float(count) <= high and float(score) >= wp_score_thres and _w1 != _w2:
+            if float(count) >= wp_count_thres and float(score) >= wp_score_thres and _w1 != _w2:
+                tag = False
                 if _w1 in all_wp_sparse_counter and _w2 in all_wp_sparse_counter[_w1]:
+                    # pa_dict = all_wp_sparse_counter[w1][w2]['pa']
+                    # for hardcore_pa in hard_core_causal_pattern:
+                    #     if hardcore_pa.endswith('_rev'):
+                    #         c2e_pa, e2c_pa = hardcore_pa[:-4], hardcore_pa
+                    #     else:
+                    #         c2e_pa, e2c_pa = hardcore_pa, hardcore_pa + '_rev'
+                    #     if c2e_pa in pa_dict and e2c_pa in pa_dict:
+                    #         tag = True
+                    #         filtered_wp.append((w1, w2))
+                    #         break
+                    # if not tag:
+                    #     # _results.append([w1_indices[w1], w2_indices[w2], 1])
+                    #     _results.append((w1, w2))
                     if _w1 not in _selected_pos_dict:
                         _selected_pos_dict[_w1] = {_w2}
                     else:
                         _selected_pos_dict[_w1].add(_w2)
         except Exception:
             pass
+        line = fin.readline()
     # 过滤(<a,b><b,a>)和不连接正样本的pattern
     _pa_counter_dict = dict()
     filtered_wp_list = []
@@ -194,12 +205,11 @@ def get_valid_wp_list_and_pattern(wp_path, wp_score_thres, wp_count_thres, v_wp_
     for _w1, _w2 in filtered_wp_list:
         pa_dict = all_wp_sparse_counter[_w1][_w2]['pa']
         if len(set(pa_dict.keys()) & _valid_pa_set) > 0:
-            if pa_dict_len[0] < len(pa_dict) < pa_dict_len[1]:
-                final_wp_list.append([w1_indices[_w1], w2_indices[_w2], 1])
-                if _w1 not in final_pos_dict:
-                    final_pos_dict[_w1] = {_w2}
-                else:
-                    final_pos_dict[_w1].add(_w2)
+            final_wp_list.append([w1_indices[_w1], w2_indices[_w2], 1])
+            if _w1 not in final_pos_dict:
+                final_pos_dict[_w1] = {_w2}
+            else:
+                final_pos_dict[_w1].add(_w2)
     return final_wp_list, final_pos_dict, _valid_pa_set
 
 
@@ -207,11 +217,11 @@ def load_test_data(test_path):
     global causalVectors, all_wp_sparse_counter
     _test_samples = []
     count = 0
-    lines = codecs.open(test_path, 'r', 'utf-8').readlines()
+    lines = codecs.open(test_path['annotate'], 'r', 'utf-8').readlines()
     for line in lines:
         res = line.strip().split('##')
         phrase_pair = res[0].split('----')
-        arg1, arg2 = phrase_pair[1].split(' '), phrase_pair[2].split(' ')
+        arg1, arg2 = phrase_pair[0].split(' '), phrase_pair[1].split(' ')
         annotate = res[1].split(' ')
         if annotate[0] in valid_pos_dict and annotate[1] in valid_pos_dict[annotate[0]]:
             count += 1
@@ -225,15 +235,11 @@ def load_test_data(test_path):
         else:
             # print("cause not found:", annotate)
             pass
-
-    acc, mrr, total = 0, [], 0
-    print('numbers of initial test set {}.'.format(len(_test_samples)))
+    acc, mrr, total = 0, [], len(_test_samples)
+    print('numbers of initial test set {}.'.format(total))
     print('numbers of initial test set in positives {}.'.format(count))
 
     for (arg1, arg2, (target_c, target_e)) in _test_samples:
-        if (target_c, target_e) not in causalVectors:
-            continue
-        total += 1
         scores = {join(c, e): causalVectors[(c, e)] for c in arg1 for e in arg2 if (c, e) in causalVectors}
         res = sorted(scores.items(), key=lambda x: x[1], reverse=True)
         target = join(target_c, target_e)
@@ -250,7 +256,38 @@ def load_test_data(test_path):
     print('criteria of initial set is acc {}, mrr {}, validate {}.\n'.format(
         initial_acc, initial_mrr, total)
     )
-    return _test_samples
+
+    def load_wp(wp_path, label):
+        res = []
+        with codecs.open(wp_path, 'r', 'utf-8') as fin:
+            lines = fin.readlines()
+            for line in lines:
+                w1, w2 = line.strip().split('\t')
+                if w1 in all_wp_sparse_counter and w2 in all_wp_sparse_counter[w1]:
+                    res.append((w1, w2, label))
+        return res
+
+    causal_wp = load_wp(test_path['causal_wp'], 1.0)
+    other_wp = load_wp(test_path['other_wp'], 0.0)
+    if len(causal_wp) < len(other_wp):
+        _wp_items = causal_wp+other_wp[:len(causal_wp)]
+    else:
+        _wp_items = other_wp + causal_wp[:len(other_wp)]
+    print('total number of wp in test set is {}.'.format(len(_wp_items)))
+    # # for wp in _wp_items:
+    # #     print(wp)
+    # total, _wp_scores = 0, []
+    # for (_w1, _w2, _label) in _wp_items:
+    #     if (_w1, _w2) not in causalVectors:
+    #         continue
+    #     _wp_scores.append((causalVectors[(_w1, _w2)], _label))
+    #     total += 1
+    # _sorted_wp_scores = sorted(_wp_scores, key=lambda x: x[0], reverse=True)
+    # points = get_pr_points(_sorted_wp_scores, 1.0)
+    # recall, precision = zip(*points)
+    # auc_val = auc(recall, precision)
+    # print('total number of wps which exist in embeddings is {}, auc value of pr curve is {}.'.format(total, auc_val))
+    return _test_samples, _wp_items
 
 
 def complete(_batch, workers=8):
@@ -263,9 +300,8 @@ def complete(_batch, workers=8):
             if pa in valid_pa_set:
                 _frequency[pa_indices[pa]] = pa_dict[pa]
             # _frequency[pa_indices[pa]] = 1. if pa_dict[pa] > 0 else 0.
-        if np.sum(_frequency) > 0:
-            results.append((_w1, _w2, _frequency, _label))
-    # assert len(results) == len(_batch)
+        results.append((_w1, _w2, _frequency, _label))
+    assert len(results) == len(_batch)
     return results
 
 
@@ -283,18 +319,121 @@ def shuffle_data(data):
     return data[shuffle_indices]
 
 
+# def multi_core_prob_calculator(filename, start, end, pa_weight):
+#     global pa_list, pa_indices, all_wp_sparse_counter
+#     prob_dict = dict()
+#     with open(filename, 'rb') as f:
+#         f.seek(start)
+#         if start != 0:
+#             f.readline()
+#         line = f.readline().decode('utf-8')
+#         while line:
+#             _res = line.strip().split('----')
+#             if len(_res) == 6 and _res[-1] in pa_indices:
+#                 _arg1_words, _arg2_words = _res[1].split(' '), _res[2].split(' ')
+#                 _arg1_pos, _arg2_pos, _pattern = _res[3].split(' '), _res[4].split(' '), _res[5]
+#                 if len(_arg1_words) == len(_arg1_pos) and len(_arg2_words) == len(_arg2_pos):
+#                     _scores = []
+#                     for w1 in _arg1_words:
+#                         if w1 not in all_wp_sparse_counter:
+#                             continue
+#                         for w2 in _arg2_words:
+#                             if w2 not in all_wp_sparse_counter[w1]:
+#                                 continue
+#                             wp_score = 0.0
+#                             pa_dict = all_wp_sparse_counter[w1][w2]['pa']
+#                             for pa in pa_dict:
+#                                 freq = 1.0 if pa_dict[pa] > 0.0 else 0.0
+#                                 wp_score += freq*pa_weight[pa_indices[pa]]
+#                             _scores.append(sigmoid(wp_score))
+#                     if len(_scores) > 0:
+#                         max_prob = max(_scores)
+#                         if _pattern not in prob_dict:
+#                             prob_dict[_pattern] = {'value': max_prob, 'count': 1}
+#                         else:
+#                             prob_dict[_pattern]['value'] += max_prob
+#                             prob_dict[_pattern]['count'] += 1
+#             if f.tell() >= end:
+#                 break
+#             line = f.readline().decode('utf-8')
+#     return prob_dict
+
+
+# def calculate_pa_prob(pp_dir, workers, pa_weight):
+#     global pa_list, pa_indices, all_wp_sparse_counter
+#     prob_dict = dict()
+#     files = os.listdir(pp_dir)
+#     for file in tqdm(files):
+#         with codecs.open(os.path.join(pp_dir, file), 'r', 'utf-8') as f:
+#             line = f.readline()
+#             while line:
+#                 _res = line.strip().split('----')
+#                 if len(_res) == 6 and _res[-1] in pa_indices:
+#                     _arg1_words, _arg2_words = _res[1].split(' '), _res[2].split(' ')
+#                     _arg1_pos, _arg2_pos, _pattern = _res[3].split(' '), _res[4].split(' '), _res[5]
+#                     if len(_arg1_words) == len(_arg1_pos) and len(_arg2_words) == len(_arg2_pos):
+#                         _scores = []
+#                         for w1 in _arg1_words:
+#                             if w1 not in all_wp_sparse_counter:
+#                                 continue
+#                             for w2 in _arg2_words:
+#                                 if w2 not in all_wp_sparse_counter[w1]:
+#                                     continue
+#                                 wp_score = 0.0
+#                                 pa_dict = all_wp_sparse_counter[w1][w2]['pa']
+#                                 for pa in pa_dict:
+#                                     freq = 1.0 if pa_dict[pa] > 0.0 else 0.0
+#                                     wp_score += freq * pa_weight[pa_indices[pa]]
+#                                 _scores.append(sigmoid(wp_score))
+#                         if len(_scores) > 0:
+#                             max_prob = max(_scores)
+#                             if _pattern not in prob_dict:
+#                                 prob_dict[_pattern] = {'value': max_prob, 'count': 1}
+#                             else:
+#                                 prob_dict[_pattern]['value'] += max_prob
+#                                 prob_dict[_pattern]['count'] += 1
+#                 line = f.readline()
+#     #     pool = multiprocessing.Pool()
+#     #     pp_path = os.path.join(pp_dir, file)
+#     #     filesize = os.path.getsize(pp_path)
+#     #     results = []
+#     #     for i in range(workers):
+#     #         s, e = (filesize * i) // workers, (filesize * (i + 1)) // workers
+#     #         results.append(pool.apply_async(
+#     #             multi_core_prob_calculator, (pp_path, s, e, pa_weight)
+#     #         ))
+#     #     pool.close()
+#     #     pool.join()
+#     #     for result in results:
+#     #         d = result.get()
+#     #         for key in d:
+#     #             if key not in global_prob_items:
+#     #                 global_prob_items[key] = d[key]
+#     #             else:
+#     #                 global_prob_items[key]['count'] += d[key]['count']
+#     #                 global_prob_items[key]['value'] += d[key]['value']
+#     #                 # items = d[key]
+#     #                 # for prob in items:
+#     #                 #     global_prob_items[key].append(prob)
+#     #         del d
+#     #         gc.collect()
+#     _response = dict()
+#     for key in prob_dict:
+#         # l, s = len(global_prob_items[key]), sum(global_prob_items[key])
+#         l, s = prob_dict[key]['count'], prob_dict[key]['value']
+#         _response[key] = s/float(l)
+#     return _response
+
+
 def get_global_pa_set():
-    def judge(char):
-        if len(char) == 1 and char not in {'让', '令', '使', '致'}:
-            return True
-        return False
     _set = set()
     thres = parameters['threshold']['v_count_thres']
     path = parameters['pattern_set_path']
     lines = codecs.open(path, 'r', 'utf-8')
     for line in lines:
         pattern, count = line.strip().split(' ')
-        if thres[0] < float(count) < thres[1] and not judge(pattern.split('_')[0]):
+        # pattern = ' '.join(res[:-1])
+        if thres[0] < float(count) < thres[1]:
             _set.add(pattern)
     return _set
 
@@ -352,7 +491,7 @@ class Trainer(object):
             pos_loss = tf.reduce_sum(- tf.log(top_k_pos_pa_prob))
             neg_loss = tf.reduce_sum(- tf.log(1 - top_k_neg_pa_prob))
 
-            reg_loss = 1e-3 * tf.reduce_sum(self.tune_pa_embed * self.tune_pa_embed)
+            reg_loss = 5e-5 * tf.reduce_sum(self.tune_pa_embed * self.tune_pa_embed)
             self.loss = pos_loss + neg_loss + reg_loss
             optimizer = tf.train.AdamOptimizer(learning_rate=params['lr'])
             gradients = optimizer.compute_gradients(self.loss)
@@ -403,18 +542,14 @@ class Trainer(object):
                         if not (c in all_wp_sparse_counter and e in all_wp_sparse_counter[c]):
                             continue
                         pa_dict = all_wp_sparse_counter[c][e]['pa']
-                        if len(set(pa_dict.keys()) & valid_pa_set) == 0:
-                            continue
                         bitmap = np.zeros([pa_len], dtype=np.float32)
                         for pa in pa_dict:
                             if pa in valid_pa_set:
                                 # bitmap[pa_indices[pa]] = pa_dict[pa]
                                 bitmap[pa_indices[pa]] = 1. if pa_dict[pa] > 0 else 0.
-                        assert np.sum(bitmap) != 0
                         scores[join(c, e)] = np.sum(bitmap * pattern_embed)
+                        # scores[join(c, e)] = np.max(bitmap * pattern_embed)
                 res = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-                if len(res) == 0:
-                    continue
                 if res[0][0] == target:
                     pa_acc += 1
                 for indices, [key, _] in enumerate(res):
@@ -423,6 +558,23 @@ class Trainer(object):
                 pa_total += 1
             print('criteria calculated by PATTERN WEIGHTS:')
             print('total {}, acc {}, mrr {}.'.format(pa_total, pa_acc / float(pa_total), sum(pa_mrr) / float(len(pa_mrr))))
+            wp_pa_score, total = [], 0
+            for (w1, w2, label) in wp_items:
+                if not (w1 in all_wp_sparse_counter and w2 in all_wp_sparse_counter[w1]):
+                    continue
+                pa_dict = all_wp_sparse_counter[w1][w2]['pa']
+                bitmap = np.zeros([pa_len], dtype=np.float32)
+                for pa in pa_dict:
+                    if pa in valid_pa_set:
+                        # bitmap[pa_indices[pa]] = pa_dict[pa]
+                        bitmap[pa_indices[pa]] = 1. if pa_dict[pa] > 0 else 0.
+                wp_pa_score.append([np.sum(bitmap * pattern_embed), label])
+                total += 1
+            sorted_wp_score = sorted(wp_pa_score, key=lambda x: x[0], reverse=True)
+            points = get_pr_points(sorted_wp_score, 1.0)
+            recall, precision = zip(*points)
+            auc_val = auc(recall, precision)
+            print('total number of valid wps which exist in counter is {}, auc value under pr curve is {}.'.format(total, auc_val))
 
     def run(self, params):
         print('\n\n======initial criteria:')
@@ -444,7 +596,7 @@ class Trainer(object):
             print('Average loss at epoch {} is {}!'.format(current_epoch+1, ave_loss))
             self.eval()
             self.save(
-                saved_path=params['saved_path'], epoch=current_epoch+1,
+                saved_path=params['saved_path'], epoch=current_epoch,
                 prefix=parameters['saved_pattern_prefix'], extract_pp_dir=parameters['extracted_pp_dir']
             )
             end_time = time()
@@ -453,23 +605,29 @@ class Trainer(object):
 
 
 if __name__ == '__main__':
+    path = os.path.join(project_source_path, 'boostvec/')
     parameters = {
-        'cause_vec_path': os.path.join(project_source_path, 'cesim/sg_max_cause_41.txt'),
-        'effect_vec_path': os.path.join(project_source_path, 'cesim/sg_max_effect_41.txt'),
-        'extracted_pp_dir': os.path.join(project_source_path, 'boostvec/zh/tutorial/sg_allverb_negatives.txt'),
-        'pattern_set_path': os.path.join(project_source_path, 'boostvec/zh/tutorial/sg_dual_pattern_set.txt'),
-        'neg_counter': os.path.join(project_source_path, 'boostvec/zh/tutorial/sg_wp_dual_counter.txt'),
-        'pos_wp_path': os.path.join(project_source_path, 'boostvec/zh/tutorial/sg_sorted_pos_wp.txt'),
-        'test_path': os.path.join(project_source_path, 'cross/bk_eva.txt'),
-        'saved_path': os.path.join(project_source_path, 'boostvec/zh/tutorial/models/pattern/'),
-        'saved_pattern_prefix': 'bk_pattern_weights_rev',
+        'cause_vec_path': os.path.join(path, 'en/fl_max_cause_11.txt'),
+        'effect_vec_path': os.path.join(path, 'en/fl_max_effect_11.txt'),
+        'extracted_pp_dir': os.path.join(path, 'en/ppfrag/'),
+        'pattern_set_path': os.path.join(path, 'en/dual_pattern_set.txt'),
+
+        'pos_wp_path': os.path.join(path, 'en/en_sharp_sorted_pos_wp.txt'),
+        'neg_counter': os.path.join(path, 'en/en_wp_dual_counter.txt'),  # counter保存路径
+        'test_path': {
+            'annotate': os.path.join(path, 'en/sharp_annotate.txt'),
+            'causal_wp': os.path.join(path, 'causalpair/en_causal_pairs.txt'),
+            'other_wp': os.path.join(path, 'causalpair/en_other_pairs.txt')
+        },
+        'saved_path': os.path.join(path, 'en/models/pattern/'),
+        'saved_pattern_prefix': 'en_pattern_weights_rev',
         'threshold': {
-            'wp': [4, 50],
-            'pos_wp_score': 0.5663,
-            'pos_wp_count': [3, 120],
+            'wp': [2, 100],
+            'pos_wp_score': 0.55,
+            'pos_wp_count': 3,
             'neg_wp_score': [-5.0, 0.5],
             'pa': 1,
-            'v_count_thres': [1000, 500000],
+            'v_count_thres': [500, 1500000],
             'v_wp_count': 1,
         },
         'num_sample': 10,
@@ -491,7 +649,7 @@ if __name__ == '__main__':
     causalVectors = CausalVector(parameters['cause_vec_path'], parameters['effect_vec_path'])
     global_pa_set = get_global_pa_set()
     print('global pa set len is {}.'.format(len(global_pa_set)))
-    # 加载负样本
+    # 加载3级索引的大表（即负样本）
     print('load counter...')
     all_wp_sparse_counter = load_counter(parameters)
     # 获取词表
@@ -504,11 +662,10 @@ if __name__ == '__main__':
     w1_indices = {w: i for i, w in enumerate(w1_list)}
     w2_indices = {w: i for i, w in enumerate(w2_list)}
     print('finished!')
-    # # 加载正样本
+    # 加载正样本
     pos_wp_list, valid_pos_dict, valid_pa_set = get_valid_wp_list_and_pattern(
         wp_path=parameters['pos_wp_path'], wp_score_thres=parameters['threshold']['pos_wp_score'],
-        wp_count_thres=parameters['threshold']['pos_wp_count'], v_wp_count=parameters['threshold']['v_wp_count'],
-        pa_dict_len=[1, 10]
+        wp_count_thres=parameters['threshold']['pos_wp_count'], v_wp_count=parameters['threshold']['v_wp_count']
     )
     print('number of pos wp is {}.'.format(len(pos_wp_list)))
     pa_list = list(valid_pa_set)
@@ -516,10 +673,11 @@ if __name__ == '__main__':
     pa_indices = {w: i for i, w in enumerate(pa_list)}
     print('vocab length: w1 {}, w2 {}, pa {}.'.format(w1_len, w2_len, pa_len))
     # 加载测试数据
-    test_samples = load_test_data(parameters['test_path'])
+    test_samples, wp_items = load_test_data(parameters['test_path'])
 
     # 从负样本中去除正样本
     neg_wp, neg_number = get_neg_samples(parameters['threshold']['neg_wp_score'])
 
     print('finished!\n=========\n\nstart training...')
     Trainer(parameters).run(parameters)
+

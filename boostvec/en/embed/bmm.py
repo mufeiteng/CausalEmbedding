@@ -401,17 +401,18 @@ class Trainer(object):
 
 
 if __name__ == '__main__':
+    path = os.path.join(project_source_path, 'boostvec/')
     parameters = {
         'target': '强弱pp混合,10倍负采样,gpu内算mask',
-        'cause_vec_path': os.path.join(project_source_path, 'boostvec/en/nn/fl_max_cause_11.txt'),
-        'effect_vec_path': os.path.join(project_source_path, 'boostvec/en/nn/fl_max_effect_11.txt'),
-        'pa_prob_path': os.path.join(project_source_path, 'boostvec/en/nn/models/pattern/prob_of_patterns_rev_2.txt'),
-        'strong_pp_path': os.path.join(project_source_path, 'boostvec/en/nn/sharp_data.txt'),
-        'weak_pp_dir': os.path.join(project_source_path, 'boostvec/en/nn/EnwikiStrongExtractions'),
-        'annotated_test_path': os.path.join(project_source_path, 'boostvec/en/nn/sharp_annotate.txt'),
-        'en_wp_testset': os.path.join(project_source_path, 'boostvec/en/nn/en_wp_testset.txt'),
-        'cause_path': os.path.join(project_source_path, 'boostvec/en/nn/models/embed/boosted_max_cause'),
-        'effect_path': os.path.join(project_source_path, 'boostvec/en/nn/models/embed/boosted_max_effect'),
+        'cause_vec_path': os.path.join(path, 'en/nn/fl_max_cause_11.txt'),
+        'effect_vec_path': os.path.join(path, 'en/nn/fl_max_effect_11.txt'),
+        'pa_prob_path': os.path.join(path, 'en/nn/models/pattern/prob_of_patterns_rev_2.txt'),
+        'strong_pp_path': os.path.join(path, 'en/nn/sharp_data.txt'),
+        'weak_pp_dir': os.path.join(path, 'en/nn/EnwikiStrongExtractions'),
+        'annotated_test_path': os.path.join(path, 'en/nn/sharp_annotate.txt'),
+        'en_wp_testset': os.path.join(path, 'en/nn/en_wp_testset.txt'),
+        'cause_path': os.path.join(path, 'en/nn/models/embed/boosted_max_cause'),
+        'effect_path': os.path.join(path, 'en/nn/models/embed/boosted_max_effect'),
 
         'strong_w_count': 1,  # 强pattern的min-count
         'weak_w_count': 5,  # 弱pattern的min-count
@@ -465,3 +466,4 @@ if __name__ == '__main__':
     annotate_test_set, sharp_wp_set = load_test_data(parameters['annotated_test_path'], parameters['en_wp_testset'], left_indices, right_indices)
 
     Trainer(parameters).run(parameters)
+

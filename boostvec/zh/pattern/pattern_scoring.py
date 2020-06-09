@@ -191,11 +191,12 @@ def write_pa_prob_dict(d, output_path):
 
 
 if __name__ == '__main__':
+    path = os.path.join(project_source_path, 'boostvec/')
     parameters = {
-        'counter_path': os.path.join(project_source_path, 'boostvec/zh/bk_wp_dual_counter.txt'),
-        'weak_pp_path': os.path.join(project_source_path, 'boostvec/zh/bk_allverb_negatives.txt'),
-        'pa_weight_path': os.path.join(project_source_path, 'boostvec/zh/models/pattern/bk_pattern_weights_rev_2.txt'),
-        'pa_prob_output_path': os.path.join(project_source_path, 'boostvec/zh/models/pattern/bk_pa_prob_rev_2.txt'),
+        'counter_path': os.path.join(path, 'zh/bk_wp_dual_counter.txt'),
+        'weak_pp_path': os.path.join(path, 'zh/bk_allverb_negatives.txt'),
+        'pa_weight_path': os.path.join(path, 'zh/models/pattern/bk_pattern_weights_rev_2.txt'),
+        'pa_prob_output_path': os.path.join(path, 'zh/models/pattern/bk_pa_prob_rev_2.txt'),
         'threshold': {
             'wp': [2, 100],
             'pa': 1,

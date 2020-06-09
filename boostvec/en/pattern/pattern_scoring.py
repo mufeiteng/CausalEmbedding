@@ -184,18 +184,19 @@ def write_pa_prob_dict(d, output_path):
 
 
 if __name__ == '__main__':
+    path = os.path.join(project_source_path, 'boostvec/')
     parameters = {
-        'counter_path': os.path.join(project_source_path, 'boostvec/en/en_wp_dual_counter.txt'),  # counter保存路径
-        'weak_pp_path': os.path.join(project_source_path, 'boostvec/en/ppfrag/'),  # 抽取出的短语对的文件
-        'pa_weight_path': os.path.join(project_source_path, 'boostvec/en/models/pattern/en_pattern_weights_rev_1.txt'),
-        'pa_prob_output_path': os.path.join(project_source_path, 'boostvec/en/models/pattern/prob_of_patterns_rev_1.txt'),
+        'counter_path': os.path.join(path, 'en/en_wp_dual_counter.txt'),  # counter保存路径
+        'weak_pp_path': os.path.join(path, 'en/ppfrag/'),  # 抽取出的短语对的文件
+        'pa_weight_path': os.path.join(path, 'en/models/pattern/en_pattern_weights_rev_1.txt'),
+        'pa_prob_output_path': os.path.join(path, 'en/models/pattern/prob_of_patterns_rev_1.txt'),
         'threshold': {
             'wp': [2, 100],
             'pa': 1,
             'pa_weight': 0.0,
         },
-        'pos_wp_path': os.path.join(project_source_path, 'boostvec/en/en_sharp_sorted_pos_wp.txt'),
-        'test_path': os.path.join(project_source_path, 'boostvec/en/sharp_annotated.txt'),
+        'pos_wp_path': os.path.join(path, 'en/en_sharp_sorted_pos_wp.txt'),
+        'test_path': os.path.join(path, 'en/sharp_annotated.txt'),
         'num_threads': 16,
     }
     if len(sys.argv) > 1:

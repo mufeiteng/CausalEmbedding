@@ -38,13 +38,13 @@ class MaxMatching(BaseModel):
             logits = self.make_attention(self.input_left_embed, self.input_right_embed)
             _probs = tf.sigmoid(logits)
 
-            maxed_probs = tf.reduce_max(tf.reduce_max(_probs*mask_matrix, axis=1), axis=1)
+            maxed_probs = tf.reduce_max(tf.reduce_max(_probs * mask_matrix, axis=1), axis=1)
             pos_probs = tf.clip_by_value(maxed_probs, 1e-5, 1.0 - 1e-5)
             pos_fl = -self.alpha * tf.pow(1 - pos_probs, self.gamma) * tf.log(pos_probs) * self.targets
 
             neg_probs = tf.clip_by_value(_probs, 1e-5, 1.0 - 1e-5)
             _3d_neg_fl = (self.alpha - 1) * tf.pow(neg_probs, self.gamma) * tf.log(1 - neg_probs)
-            neg_fl = tf.reduce_sum(tf.reduce_sum(_3d_neg_fl*mask_matrix, axis=1), axis=1) * (1.0-self.targets)
+            neg_fl = tf.reduce_sum(tf.reduce_sum(_3d_neg_fl * mask_matrix, axis=1), axis=1) * (1.0 - self.targets)
             self.loss = tf.reduce_sum([pos_fl, neg_fl])
             # self.calculate_similar()  # high time-consuming
             self.global_steps = tf.Variable(0, trainable=False)
@@ -56,7 +56,7 @@ class MaxMatching(BaseModel):
         print('model: Max started!\n')
         with self.sess.as_default():
             assert isinstance(self.dataloader, Data)
-            base_acc = 0.5
+            base_acc = 0.0
             for current_epoch in range(self.num_epochs):
                 print('current epoch: {} started.'.format(current_epoch + 1))
                 ave_loss, count = 0.0, 0
@@ -88,13 +88,15 @@ class MaxMatching(BaseModel):
                 acc, mrr = self.eval(current_epoch)
                 if acc > base_acc:
                     base_acc = acc
+                    print('accuracy and mrr value in epoch {} is acc: {}, mrr: {}.'.format(current_epoch, acc, mrr))
+
                     self.write_embedding(params['cause_path'], params['effect_path'], str(current_epoch + 1))
                 end_time = time()
                 print('epoch: {} uses {} minutes.\n'.format(current_epoch + 1, float(end_time - start_time) / 60))
 
 
 if __name__ == '__main__':
-    path = os.path.join(project_source_path, 'causalembedding/')
+    path = os.path.join(project_source_path, 'causalembedding/causalvec/')
     params = {
         'train_path': os.path.join(path, 'sg_positives.txt'),
         'test_path': os.path.join(path, 'bk_eva.txt'),
@@ -102,12 +104,12 @@ if __name__ == '__main__':
         'num_epochs': 50,
         'embedding_size': 100,
         'learning_rate': 0.005,
-        'cause_path': os.path.join(project_source_path, 'embedding/max_cause'),
-        'effect_path': os.path.join(project_source_path, 'embedding/max_effect'),
+        'cause_path': os.path.join(path, 'models/zh_max_cause'),
+        'effect_path': os.path.join(path, 'models/zh_max_effect'),
         'min_count': 8,
         'num_samples': 10,
     }
-    
+
     loader = Data()
     loader.prepare_data(params['train_path'], params['test_path'], params['min_count'])
     causalVec = MaxMatching(
